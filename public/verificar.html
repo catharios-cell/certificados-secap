@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificación de Certificado · SECAP</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:      #1A5DA5;
+      --blue-dark: #0E4A8A;
+      --celest:    #3DAAD8;
+      --bg:        #EBF5FC;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, #2370B8 100%);
+      padding: 0 32px;
+      height: 76px;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      box-shadow: 0 3px 12px rgba(14,74,138,.35);
+    }
+    header img { height: 56px; object-fit: contain; }
+    .header-divider { width: 1px; height: 40px; background: rgba(255,255,255,.3); }
+    .header-text h1 { color: #fff; font-size: 17px; font-weight: 700; }
+    .header-text p  { color: rgba(255,255,255,.7); font-size: 12px; margin-top: 2px; }
+
+    main {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 48px 20px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 32px rgba(26,93,165,.14);
+      width: 100%;
+      max-width: 500px;
+      overflow: hidden;
+      border: 1px solid rgba(61,170,216,.2);
+    }
+
+    /* Loading */
+    .state-loading { padding: 60px; text-align: center; color: #9ABCD0; }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 4px solid #D6EAF8;
+      border-top-color: var(--celest);
+      border-radius: 50%;
+      animation: spin .8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Valid */
+    .head-valid {
+      background: linear-gradient(135deg, #1B6E2A, #27AE60);
+      padding: 32px; text-align: center;
+      position: relative;
+    }
+    .head-valid::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #A8E6B4, #fff, #A8E6B4);
+    }
+
+    /* Invalid */
+    .head-invalid {
+      background: linear-gradient(135deg, #9B1A1A, #C0392B);
+      padding: 32px; text-align: center;
+      position: relative;
+    }
+    .head-invalid::after {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 3px;
+      background: linear-gradient(90deg, #FFAAA8, #fff, #FFAAA8);
+    }
+
+    .state-icon { font-size: 52px; margin-bottom: 10px; }
+    .head-valid   h2, .head-invalid h2 { color: #fff; font-size: 22px; margin-bottom: 6px; }
+    .head-valid   p  { color: rgba(255,255,255,.82); font-size: 14px; }
+    .head-invalid p  { color: rgba(255,255,255,.82); font-size: 14px; }
+
+    .card-body { padding: 32px; }
+
+    .detail-row {
+      display: flex; gap: 12px; padding: 13px 0;
+      border-bottom: 1px solid #EBF5FC; align-items: baseline;
+    }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .5px; color: #9ABCD0; min-width: 90px;
+    }
+    .detail-value { font-size: 15px; color: #2C3E50; font-weight: 500; }
+
+    .code-badge {
+      display: inline-block; font-family: monospace;
+      background: #EBF5FC; color: var(--blue);
+      padding: 3px 10px; border-radius: 5px; font-size: 14px; font-weight: 600;
+    }
+
+    .btn-back {
+      display: block; text-align: center; margin-top: 24px; padding: 12px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dark));
+      color: #fff; border-radius: 8px; text-decoration: none;
+      font-size: 14px; font-weight: 600;
+      box-shadow: 0 3px 8px rgba(26,93,165,.25);
+      transition: opacity .2s;
+    }
+    .btn-back:hover { opacity: .88; }
+
+    footer {
+      text-align: center; padding: 16px;
+      font-size: 12px; color: #9ABCD0;
+      border-top: 1px solid #D6EAF8; background: #F0F8FF;
+    }
+    footer a { color: var(--celest); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <img
+    src="/uploads/logo.webp"
+    onerror="this.src='/uploads/logo.png';this.onerror=function(){this.src='https://secap.cl/wp-content/uploads/2025/10/Logo-removebg-preview-3.webp';this.onerror=null}"
+    alt="SECAP">
+  <div class="header-divider"></div>
+  <div class="header-text">
+    <h1>Verificación de Certificado</h1>
+    <p id="empresaNombre">SECAP · Servicio de Capacitaciones</p>
+  </div>
+</header>
+
+<main>
+  <div class="card" id="card">
+    <div class="state-loading">
+      <div class="spinner"></div>
+      <p>Verificando autenticidad del certificado…</p>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Sistema de certificados <a href="https://secap.cl" target="_blank">secap.cl</a>
+</footer>
+
+<script>
+  fetch('/api/info').then(r => r.json()).then(d => {
+    if (d.empresa) document.getElementById('empresaNombre').textContent = d.empresa;
+  }).catch(() => {});
+
+  const codigo = location.pathname.split('/').pop();
+
+  fetch(`/api/verificar/${codigo}`)
+    .then(r => r.json())
+    .then(data => {
+      const card = document.getElementById('card');
+
+      if (data.valido) {
+        card.innerHTML = `
+          <div class="head-valid">
+            <div class="state-icon">✅</div>
+            <h2>Certificado Válido</h2>
+            <p>Este documento es auténtico y fue emitido por nuestra institución</p>
+          </div>
+          <div class="card-body">
+            <div class="detail-row">
+              <span class="detail-label">Nombre</span>
+              <span class="detail-value">${data.nombre}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">RUT</span>
+              <span class="detail-value">${data.rut}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Curso</span>
+              <span class="detail-value">${data.curso}</span>
+            </div>
+            ${data.fecha ? `
+            <div class="detail-row">
+              <span class="detail-label">Fecha</span>
+              <span class="detail-value">${data.fecha}</span>
+            </div>` : ''}
+            ${data.horas ? `
+            <div class="detail-row">
+              <span class="detail-label">Duración</span>
+              <span class="detail-value">${data.horas} horas cronológicas</span>
+            </div>` : ''}
+            <div class="detail-row">
+              <span class="detail-label">Código</span>
+              <span class="detail-value"><span class="code-badge">${codigo}</span></span>
+            </div>
+            <a href="/" class="btn-back">← Ir a Descarga de Certificados</a>
+          </div>
+        `;
+      } else {
+        card.innerHTML = `
+          <div class="head-invalid">
+            <div class="state-icon">❌</div>
+            <h2>Certificado No Encontrado</h2>
+            <p>${data.mensaje || 'No se encontró este certificado en el sistema'}</p>
+          </div>
+          <div class="card-body">
+            <p style="color:#5D7A8A;font-size:14px;line-height:1.7">
+              El código <strong>${codigo}</strong> no corresponde a ningún certificado registrado en nuestro sistema.
+              Si crees que es un error, contacta directamente a la institución emisora.
+            </p>
+            <a href="/" class="btn-back">← Ir a Descarga de Certificados</a>
+          </div>
+        `;
+      }
+    })
+    .catch(() => {
+      document.getElementById('card').innerHTML = `
+        <div class="card-body" style="padding:48px;text-align:center">
+          <p style="font-size:40px;margin-bottom:16px">⚠️</p>
+          <p style="color:#C62828;font-size:16px;font-weight:600">Error al verificar el certificado</p>
+          <p style="color:#9ABCD0;font-size:13px;margin-top:8px">Intenta nuevamente más tarde.</p>
+          <a href="/" class="btn-back" style="margin-top:24px">← Volver</a>
+        </div>
+      `;
+    });
+</script>
+</body>
+</html>

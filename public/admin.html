@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Admin · SECAP Certificados</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:      #1A5DA5;
+      --blue-dark: #0E4A8A;
+      --blue-hover:#1462B8;
+      --celest:    #3DAAD8;
+      --celest-h:  #2E96C8;
+      --bg:        #EBF5FC;
+      --card:      #FFFFFF;
+      --border:    #C8DFF0;
+      --text:      #2C3E50;
+      --muted:     #6E8CA0;
+    }
+
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); min-height: 100vh; }
+
+    /* ---- Login ---- */
+    #loginScreen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 50%, #2370B8 100%);
+    }
+    .login-card {
+      background: #fff; border-radius: 16px; padding: 48px 40px;
+      width: 380px; text-align: center;
+      box-shadow: 0 16px 48px rgba(0,0,0,.28);
+    }
+    .login-logo { height: 80px; margin-bottom: 20px; }
+    .login-card h2 { color: var(--blue); font-size: 20px; margin-bottom: 4px; }
+    .login-card p  { color: var(--muted); font-size: 13px; margin-bottom: 28px; }
+
+    /* ---- App shell ---- */
+    #appShell { display: none; flex-direction: column; min-height: 100vh; }
+
+    nav {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 100%);
+      padding: 0 24px;
+      display: flex; align-items: center; gap: 4px;
+      height: 62px;
+      box-shadow: 0 3px 12px rgba(14,74,138,.35);
+    }
+    .nav-logo { height: 42px; margin-right: 12px; }
+    .nav-brand { color: #fff; font-weight: 700; font-size: 15px; margin-right: auto; }
+    .nav-brand span { color: rgba(255,255,255,.6); font-weight: 400; font-size: 13px; margin-left: 6px; }
+
+    .tab-btn {
+      padding: 8px 16px; border: none; background: transparent;
+      color: rgba(255,255,255,.65); font-size: 13px; cursor: pointer;
+      border-radius: 6px; transition: background .2s, color .2s; white-space: nowrap;
+    }
+    .tab-btn:hover  { background: rgba(255,255,255,.1); color: #fff; }
+    .tab-btn.active { background: rgba(255,255,255,.18); color: #fff; font-weight: 600; }
+    .btn-logout {
+      margin-left: 10px; padding: 7px 16px;
+      background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25);
+      color: #fff; border-radius: 6px; font-size: 13px; cursor: pointer;
+    }
+    .btn-logout:hover { background: rgba(255,255,255,.22); }
+
+    .tab-content { display: none; padding: 32px 28px; max-width: 1040px; margin: 0 auto; width: 100%; }
+    .tab-content.active { display: block; }
+
+    /* ---- Shared ---- */
+    .section-title {
+      font-size: 17px; font-weight: 700; color: var(--blue);
+      margin-bottom: 20px; padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .form-group { margin-bottom: 18px; }
+    .form-group label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--blue); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 7px;
+    }
+    input[type="text"], input[type="url"], input[type="password"] {
+      width: 100%; padding: 11px 14px; border: 2px solid var(--border);
+      border-radius: 8px; font-size: 15px; outline: none; color: var(--text);
+      transition: border-color .2s, box-shadow .2s; background: #F7FBFF;
+    }
+    input:focus { border-color: var(--celest); box-shadow: 0 0 0 3px rgba(61,170,216,.12); background: #fff; }
+
+    .btn {
+      padding: 10px 22px; border: none; border-radius: 8px;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+    .btn:active  { transform: scale(.97); }
+    .btn:disabled { opacity: .45; cursor: default; }
+    .btn-blue  { background: linear-gradient(135deg, var(--blue), var(--blue-dark)); color: #fff; box-shadow: 0 3px 8px rgba(26,93,165,.28); }
+    .btn-blue:hover { opacity: .9; }
+    .btn-celest { background: linear-gradient(135deg, var(--celest), var(--celest-h)); color: #fff; box-shadow: 0 3px 8px rgba(61,170,216,.3); }
+    .btn-celest:hover { opacity: .9; }
+    .btn-red   { background: #D32F2F; color: #fff; }
+    .btn-red:hover { background: #B71C1C; }
+    .btn-outline {
+      background: transparent; border: 2px solid var(--blue); color: var(--blue);
+    }
+    .btn-outline:hover { background: var(--blue); color: #fff; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; }
+
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; padding: 13px 22px;
+      border-radius: 8px; font-size: 14px; font-weight: 600; color: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,.2);
+      transform: translateY(80px); opacity: 0;
+      transition: transform .3s, opacity .3s; z-index: 9999;
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.ok  { background: #1B7A2F; }
+    .toast.err { background: #C62828; }
+
+    /* ---- Upload ---- */
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 10px; padding: 36px;
+      text-align: center; cursor: pointer; background: #F4FAFF;
+      transition: border-color .2s, background .2s;
+    }
+    .upload-zone:hover { border-color: var(--celest); background: #EBF5FC; }
+    .upload-zone strong { color: var(--blue); font-size: 16px; }
+    .upload-zone p { color: var(--muted); font-size: 13px; margin-top: 8px; }
+    #fileInput { display: none; }
+
+    .upload-result {
+      display: none; border-radius: 8px; padding: 14px 18px;
+      font-size: 14px; margin-top: 16px;
+    }
+    .upload-result.ok  { background: #E8F5E9; color: #1B5E20; border: 1px solid #A5D6A7; }
+    .upload-result.err { background: #FFEBEE; color: #B71C1C; border: 1px solid #FFCDD2; }
+
+    /* ---- Table ---- */
+    .table-wrap { overflow-x: auto; margin-top: 24px; border-radius: 10px; box-shadow: 0 2px 10px rgba(26,93,165,.1); }
+    table { width: 100%; border-collapse: collapse; background: #fff; font-size: 14px; }
+    th {
+      background: linear-gradient(135deg, var(--blue-dark), var(--blue));
+      color: #fff; padding: 12px 16px; text-align: left;
+      font-size: 11px; text-transform: uppercase; letter-spacing: .5px;
+    }
+    td { padding: 11px 16px; border-bottom: 1px solid #EBF5FC; color: var(--text); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #F4FAFF; }
+    .code-badge {
+      font-family: monospace; background: #EBF5FC; color: var(--blue);
+      padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 600;
+    }
+    .empty-row td { text-align: center; color: #AABDD0; padding: 32px; }
+
+    .table-toolbar { display: flex; align-items: center; gap: 12px; margin-top: 24px; }
+    .search-input {
+      flex: 1; padding: 10px 14px; border: 2px solid var(--border);
+      border-radius: 8px; font-size: 14px; outline: none; background: #F7FBFF;
+    }
+    .search-input:focus { border-color: var(--celest); }
+
+    /* ---- Config grid ---- */
+    .config-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    @media (max-width: 620px) { .config-grid { grid-template-columns: 1fr; } }
+
+    /* ---- Images ---- */
+    .img-upload-row { display: flex; gap: 28px; flex-wrap: wrap; }
+    .img-box {
+      flex: 1; min-width: 240px; background: var(--card); border-radius: 12px;
+      padding: 24px; box-shadow: 0 2px 10px rgba(26,93,165,.1);
+      border: 1px solid var(--border);
+    }
+    .img-box h3 { font-size: 14px; color: var(--blue); font-weight: 700; margin-bottom: 14px; text-transform: uppercase; letter-spacing: .5px; }
+    .img-preview {
+      width: 100%; height: 120px; object-fit: contain;
+      border: 2px dashed var(--border); border-radius: 8px;
+      background: #F4FAFF; margin-bottom: 14px; display: block;
+    }
+
+    /* ---- QR ---- */
+    .qr-container {
+      background: var(--card); border-radius: 12px; padding: 32px;
+      box-shadow: 0 2px 10px rgba(26,93,165,.1); text-align: center; max-width: 400px;
+      border: 1px solid var(--border);
+    }
+    .qr-container img { width: 200px; height: 200px; margin: 16px auto; display: block; border-radius: 4px; box-shadow: 0 2px 10px rgba(0,0,0,.1); }
+
+    /* ---- Danger box ---- */
+    .danger-box {
+      background: #FFF8F8; border: 2px solid #FFCDD2;
+      border-radius: 10px; padding: 24px; margin-top: 32px;
+    }
+    .danger-box h3 { color: #C62828; font-size: 14px; font-weight: 700; margin-bottom: 16px; text-transform: uppercase; letter-spacing: .5px; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-card">
+    <img class="login-logo"
+      src="/uploads/logo.webp"
+      onerror="this.src='/uploads/logo.png'; this.onerror=function(){this.src='https://secap.cl/wp-content/uploads/2025/10/Logo-removebg-preview-3.webp';this.onerror=null}"
+      alt="SECAP">
+    <h2>Panel de Administración</h2>
+    <p>Ingresa tu contraseña para continuar</p>
+    <div class="form-group">
+      <input type="password" id="loginPass" placeholder="Contraseña" autocomplete="current-password">
+    </div>
+    <button class="btn btn-blue" style="width:100%;padding:13px;font-size:15px" id="loginBtn">Ingresar</button>
+    <div id="loginError" style="color:#C62828;font-size:13px;margin-top:12px;display:none"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="appShell">
+  <nav>
+    <img class="nav-logo"
+      src="/uploads/logo.webp"
+      onerror="this.src='/uploads/logo.png'; this.onerror=function(){this.src='https://secap.cl/wp-content/uploads/2025/10/Logo-removebg-preview-3.webp';this.onerror=null}"
+      alt="SECAP">
+    <span class="nav-brand">Certificados <span>· Admin</span></span>
+    <button class="tab-btn active" onclick="openTab('estudiantes', this)">Estudiantes</button>
+    <button class="tab-btn"        onclick="openTab('config',      this)">Configuración</button>
+    <button class="tab-btn"        onclick="openTab('imagenes',    this)">Imágenes</button>
+    <button class="tab-btn"        onclick="openTab('qr',          this)">QR de Acceso</button>
+    <button class="btn-logout"     onclick="logout()">Salir</button>
+  </nav>
+
+  <!-- ESTUDIANTES -->
+  <div class="tab-content active" id="tab-estudiantes">
+    <p class="section-title">Subir Estudiantes</p>
+    <div style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap">
+      <div class="upload-zone" style="flex:1;min-width:260px" onclick="document.getElementById('fileInput').click()">
+        <strong>📂 Seleccionar archivo Excel o CSV</strong>
+        <p>Columnas esperadas: RUT · Nombre · Curso · Fecha · Horas</p>
+        <p id="selectedFileName" style="color:var(--blue);font-weight:600;margin-top:8px"></p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;justify-content:center">
+        <button class="btn btn-outline" onclick="descargarPlantilla()">↓ Plantilla Excel</button>
+        <button class="btn btn-blue" id="uploadBtn" disabled onclick="subirArchivo()">↑ Subir Archivo</button>
+      </div>
+    </div>
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="archivoSeleccionado(this)">
+    <div class="upload-result" id="uploadResult"></div>
+
+    <div class="table-toolbar">
+      <p class="section-title" style="margin:0;border:none;padding:0;flex:none">Estudiantes registrados</p>
+      <input class="search-input" type="text" placeholder="Buscar por RUT, nombre o curso…" oninput="filtrarTabla(this.value)">
+      <button class="btn btn-sm btn-outline" onclick="cargarEstudiantes()">↻ Actualizar</button>
+    </div>
+
+    <div class="table-wrap">
+      <table id="studentsTable">
+        <thead>
+          <tr>
+            <th>Nombre</th><th>RUT</th><th>Curso</th>
+            <th>Fecha</th><th>Horas</th><th>Código</th><th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="studentsBody">
+          <tr class="empty-row"><td colspan="7">Cargando…</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p id="totalCount" style="font-size:13px;color:var(--muted);margin-top:10px"></p>
+  </div>
+
+  <!-- CONFIGURACIÓN -->
+  <div class="tab-content" id="tab-config">
+    <p class="section-title">Configuración del Sistema</p>
+    <div class="config-grid">
+      <div class="form-group">
+        <label>Nombre de la Empresa / OTEC</label>
+        <input type="text" id="cfgEmpresa" placeholder="SECAP - Servicio de Capacitaciones">
+      </div>
+      <div class="form-group">
+        <label>URL del Sitio (para QR en certificados)</label>
+        <input type="url" id="cfgBaseUrl" placeholder="https://certificados.secap.cl">
+      </div>
+      <div class="form-group">
+        <label>Código SENCE</label>
+        <input type="text" id="cfgSence" placeholder="Ej: 1237940100">
+      </div>
+      <div class="form-group">
+        <label>Resolución CERTHIA</label>
+        <input type="text" id="cfgCerthia" placeholder="Ej: R-2024-001">
+      </div>
+      <div class="form-group">
+        <label>Nombre del Firmante</label>
+        <input type="text" id="cfgFirmante" placeholder="Nombre completo">
+      </div>
+      <div class="form-group">
+        <label>Cargo del Firmante</label>
+        <input type="text" id="cfgCargo" placeholder="Director/a Ejecutivo/a">
+      </div>
+    </div>
+    <button class="btn btn-blue" onclick="guardarConfig()">Guardar Configuración</button>
+
+    <div class="danger-box">
+      <h3>🔒 Cambiar Contraseña de Administrador</h3>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <input type="password" id="nuevaPass" placeholder="Nueva contraseña (mínimo 6 caracteres)"
+          style="flex:1;min-width:220px;padding:11px 14px;border:2px solid #FFCDD2;border-radius:8px;font-size:14px;outline:none">
+        <button class="btn btn-red" onclick="cambiarPassword()">Cambiar Contraseña</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- IMÁGENES -->
+  <div class="tab-content" id="tab-imagenes">
+    <p class="section-title">Logo y Firma del Certificado</p>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:24px">
+      Sube el logo y la firma que aparecerán en los certificados PDF generados.
+    </p>
+    <div class="img-upload-row">
+      <div class="img-box">
+        <h3>Logo de la Empresa</h3>
+        <img id="previewLogo" class="img-preview"
+          src="/uploads/logo.webp"
+          onerror="this.src='/uploads/logo.png';this.onerror=function(){this.src='https://secap.cl/wp-content/uploads/2025/10/Logo-removebg-preview-3.webp';this.onerror=null}"
+          alt="Logo">
+        <input type="file" id="fileLogoInput" accept="image/*" style="display:none" onchange="subirImagen('logo', this)">
+        <button class="btn btn-outline" style="width:100%" onclick="document.getElementById('fileLogoInput').click()">
+          Subir Logo (PNG / JPG)
+        </button>
+        <p style="font-size:12px;color:#9ABCD0;margin-top:8px">Recomendado: PNG con fondo transparente, mín. 300px ancho</p>
+      </div>
+      <div class="img-box">
+        <h3>Firma del Responsable</h3>
+        <img id="previewFirma" class="img-preview"
+          src="/uploads/firma.png"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22120%22><rect width=%22200%22 height=%22120%22 fill=%22%23EBF5FC%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ABCD0%22 font-size=%2213%22>Sin firma</text></svg>'"
+          alt="Firma">
+        <input type="file" id="fileFirmaInput" accept="image/*" style="display:none" onchange="subirImagen('firma', this)">
+        <button class="btn btn-outline" style="width:100%" onclick="document.getElementById('fileFirmaInput').click()">
+          Subir Firma (PNG / JPG)
+        </button>
+        <p style="font-size:12px;color:#9ABCD0;margin-top:8px">Recomendado: PNG con fondo blanco o transparente</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR DE ACCESO -->
+  <div class="tab-content" id="tab-qr">
+    <p class="section-title">QR de Acceso para Estudiantes</p>
+    <p style="color:var(--muted);font-size:14px;margin-bottom:24px">
+      Imprime o comparte este código QR. Al escanearlo, el estudiante llega directamente a la página de descarga de certificados.
+    </p>
+    <div class="qr-container">
+      <p style="font-size:12px;color:var(--muted)">Apunta a:</p>
+      <p id="qrTargetUrl" style="font-weight:700;color:var(--blue);font-size:14px;word-break:break-all;margin:6px 0"></p>
+      <img id="qrImg" src="" alt="QR de acceso">
+      <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap">
+        <a id="qrDownloadBtn" href="#" download="qr-certificados-secap.png" class="btn btn-blue">↓ Descargar QR</a>
+        <button class="btn btn-outline" onclick="window.print()">🖨 Imprimir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let pwd = '';
+  let allStudents = [];
+
+  // ---- Login ----
+  document.getElementById('loginPass').addEventListener('keypress', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+  document.getElementById('loginBtn').addEventListener('click', doLogin);
+
+  async function doLogin() {
+    const pass = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginError');
+    errEl.style.display = 'none';
+    const btn = document.getElementById('loginBtn');
+    btn.disabled = true; btn.textContent = 'Ingresando…';
+    try {
+      const res = await fetch('/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: pass })
+      });
+      if (res.ok) {
+        pwd = pass;
+        sessionStorage.setItem('adminPwd', pwd);
+        showApp();
+      } else {
+        const d = await res.json();
+        errEl.textContent = d.error || 'Contraseña incorrecta';
+        errEl.style.display = 'block';
+      }
+    } catch (e) {
+      errEl.textContent = 'Error de conexión';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Ingresar';
+    }
+  }
+
+  function showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('appShell').style.display = 'flex';
+    cargarEstudiantes();
+    cargarConfig();
+    cargarQR();
+  }
+
+  function logout() {
+    sessionStorage.removeItem('adminPwd');
+    pwd = '';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('appShell').style.display = 'none';
+    document.getElementById('loginPass').value = '';
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    const saved = sessionStorage.getItem('adminPwd');
+    if (saved) { pwd = saved; showApp(); }
+  });
+
+  // ---- Tabs ----
+  function openTab(name, btn) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ---- Students ----
+  async function cargarEstudiantes() {
+    try {
+      const res = await fetch('/admin/estudiantes', { headers: { password: pwd } });
+      if (res.status === 401) { logout(); return; }
+      allStudents = await res.json();
+      renderTabla(allStudents);
+    } catch (e) { toast('Error cargando estudiantes', true); }
+  }
+
+  function renderTabla(list) {
+    const tbody  = document.getElementById('studentsBody');
+    const totalEl = document.getElementById('totalCount');
+    if (!list.length) {
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No hay estudiantes registrados aún</td></tr>';
+      totalEl.textContent = '';
+      return;
+    }
+    tbody.innerHTML = list.map(s => `
+      <tr>
+        <td><strong>${s.nombre}</strong></td>
+        <td>${s.rut}</td>
+        <td>${s.curso}</td>
+        <td>${s.fecha || '—'}</td>
+        <td>${s.horas || '—'}</td>
+        <td><span class="code-badge">${s.codigo}</span></td>
+        <td style="display:flex;gap:8px;flex-wrap:wrap">
+          <a href="/certificado/${s.codigo}" class="btn btn-sm btn-celest" target="_blank" download>↓ PDF</a>
+          <button class="btn btn-sm btn-red" onclick="eliminar('${s.codigo}','${escHtml(s.nombre)}')">Eliminar</button>
+        </td>
+      </tr>
+    `).join('');
+    totalEl.textContent = `Total: ${list.length} estudiante${list.length !== 1 ? 's' : ''}`;
+  }
+
+  function filtrarTabla(q) {
+    const ql = q.toLowerCase();
+    renderTabla(allStudents.filter(s =>
+      s.nombre.toLowerCase().includes(ql) ||
+      s.rut.toLowerCase().includes(ql) ||
+      s.curso.toLowerCase().includes(ql)
+    ));
+  }
+
+  async function eliminar(codigo, nombre) {
+    if (!confirm(`¿Eliminar el certificado de "${nombre}"?`)) return;
+    try {
+      const res = await fetch(`/admin/estudiantes/${codigo}`, {
+        method: 'DELETE', headers: { password: pwd }
+      });
+      if (!res.ok) throw new Error();
+      toast('Certificado eliminado');
+      cargarEstudiantes();
+    } catch (e) { toast('Error al eliminar', true); }
+  }
+
+  // ---- Upload ----
+  let selectedFile = null;
+
+  function archivoSeleccionado(input) {
+    selectedFile = input.files[0];
+    document.getElementById('selectedFileName').textContent = selectedFile ? '📄 ' + selectedFile.name : '';
+    document.getElementById('uploadBtn').disabled = !selectedFile;
+    document.getElementById('uploadResult').style.display = 'none';
+  }
+
+  async function subirArchivo() {
+    if (!selectedFile) return;
+    const btn = document.getElementById('uploadBtn');
+    const resultDiv = document.getElementById('uploadResult');
+    btn.disabled = true; btn.textContent = 'Subiendo…';
+
+    const form = new FormData();
+    form.append('archivo', selectedFile);
+
+    try {
+      const res = await fetch('/admin/subir', { method: 'POST', headers: { password: pwd }, body: form });
+      const data = await res.json();
+      resultDiv.style.display = 'block';
+      if (res.ok) {
+        let html = `<strong>✓ Importación exitosa</strong><br>
+          Nuevos: <strong>${data.added}</strong> ·
+          Actualizados: <strong>${data.updated}</strong> ·
+          Total: <strong>${data.total}</strong>`;
+        if (data.errors && data.errors.length)
+          html += `<br><br><em>Advertencias:</em><br>${data.errors.map(e => `• ${e}`).join('<br>')}`;
+        resultDiv.className = 'upload-result ok';
+        resultDiv.innerHTML = html;
+        cargarEstudiantes();
+      } else {
+        resultDiv.className = 'upload-result err';
+        resultDiv.textContent = '✗ ' + (data.error || 'Error desconocido');
+      }
+    } catch (e) {
+      resultDiv.className = 'upload-result err';
+      resultDiv.textContent = '✗ Error de conexión';
+      resultDiv.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = '↑ Subir Archivo';
+      selectedFile = null;
+      document.getElementById('fileInput').value = '';
+      document.getElementById('selectedFileName').textContent = '';
+      document.getElementById('uploadBtn').disabled = true;
+    }
+  }
+
+  async function descargarPlantilla() {
+    const res = await fetch('/admin/plantilla', { headers: { password: pwd } });
+    if (!res.ok) { toast('Error descargando plantilla', true); return; }
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'plantilla-estudiantes.xlsx'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- Config ----
+  async function cargarConfig() {
+    try {
+      const res = await fetch('/admin/config', { headers: { password: pwd } });
+      const cfg = await res.json();
+      document.getElementById('cfgEmpresa').value  = cfg.empresa  || '';
+      document.getElementById('cfgSence').value    = cfg.sence    || '';
+      document.getElementById('cfgCerthia').value  = cfg.certhia  || '';
+      document.getElementById('cfgFirmante').value = cfg.firmante || '';
+      document.getElementById('cfgCargo').value    = cfg.cargo    || '';
+      document.getElementById('cfgBaseUrl').value  = cfg.baseUrl  || '';
+    } catch (e) { toast('Error cargando configuración', true); }
+  }
+
+  async function guardarConfig() {
+    const body = {
+      empresa:  document.getElementById('cfgEmpresa').value.trim(),
+      sence:    document.getElementById('cfgSence').value.trim(),
+      certhia:  document.getElementById('cfgCerthia').value.trim(),
+      firmante: document.getElementById('cfgFirmante').value.trim(),
+      cargo:    document.getElementById('cfgCargo').value.trim(),
+      baseUrl:  document.getElementById('cfgBaseUrl').value.trim(),
+    };
+    try {
+      const res = await fetch('/admin/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', password: pwd },
+        body: JSON.stringify(body)
+      });
+      if (res.ok) { toast('Configuración guardada'); cargarQR(); }
+      else { const d = await res.json(); toast(d.error || 'Error', true); }
+    } catch (e) { toast('Error de conexión', true); }
+  }
+
+  async function cambiarPassword() {
+    const nueva = document.getElementById('nuevaPass').value;
+    if (!nueva) { toast('Ingresa la nueva contraseña', true); return; }
+    if (!confirm('¿Cambiar la contraseña de administrador?')) return;
+    try {
+      const res = await fetch('/admin/password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', password: pwd },
+        body: JSON.stringify({ nuevaPassword: nueva })
+      });
+      const d = await res.json();
+      if (res.ok) {
+        pwd = nueva;
+        sessionStorage.setItem('adminPwd', pwd);
+        document.getElementById('nuevaPass').value = '';
+        toast('Contraseña actualizada');
+      } else { toast(d.error || 'Error', true); }
+    } catch (e) { toast('Error de conexión', true); }
+  }
+
+  // ---- Images ----
+  async function subirImagen(tipo, input) {
+    const file = input.files[0];
+    if (!file) return;
+    const form = new FormData();
+    form.append('imagen', file);
+    try {
+      const res = await fetch(`/admin/imagen/${tipo}`, {
+        method: 'POST', headers: { password: pwd }, body: form
+      });
+      const d = await res.json();
+      if (res.ok) {
+        const previewId = 'preview' + tipo.charAt(0).toUpperCase() + tipo.slice(1);
+        document.getElementById(previewId).src = d.url;
+        toast(tipo === 'logo' ? 'Logo actualizado' : 'Firma actualizada');
+      } else { toast(d.error || 'Error al subir imagen', true); }
+    } catch (e) { toast('Error de conexión', true); }
+    input.value = '';
+  }
+
+  // ---- QR ----
+  async function cargarQR() {
+    try {
+      const cfgRes = await fetch('/admin/config', { headers: { password: pwd } });
+      const cfg = await cfgRes.json();
+      const url = (cfg.baseUrl || window.location.origin).replace(/\/$/, '');
+      document.getElementById('qrTargetUrl').textContent = url;
+
+      const qrRes = await fetch('/admin/qr-acceso', { headers: { password: pwd } });
+      const blob  = await qrRes.blob();
+      const objUrl = URL.createObjectURL(blob);
+      document.getElementById('qrImg').src          = objUrl;
+      document.getElementById('qrDownloadBtn').href = objUrl;
+    } catch (e) {}
+  }
+
+  // ---- Toast ----
+  function toast(msg, isErr = false) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className   = 'toast ' + (isErr ? 'err' : 'ok');
+    el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 3000);
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+</script>
+</body>
+</html>

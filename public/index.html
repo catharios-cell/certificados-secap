@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Certificados · SECAP Servicio de Capacitaciones</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:      #1A5DA5;
+      --blue-dark: #0E4A8A;
+      --celest:    #3DAAD8;
+      --celest-h:  #2E96C8;
+      --bg:        #EBF5FC;
+      --text:      #2C3E50;
+      --muted:     #6E8CA0;
+      --border:    #BDD9EF;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ================================================================
+       TOP BAR (info strip)
+    ================================================================ */
+    .topbar {
+      background: var(--blue-dark);
+      padding: 6px 32px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 20px;
+    }
+    .topbar a {
+      color: rgba(255,255,255,.7);
+      text-decoration: none;
+      font-size: 12px;
+      transition: color .2s;
+    }
+    .topbar a:hover { color: #fff; }
+    .topbar .sep { color: rgba(255,255,255,.3); font-size: 11px; }
+
+    /* ================================================================
+       HEADER (logo)
+    ================================================================ */
+    .site-header {
+      background: #fff;
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px solid var(--celest);
+      box-shadow: 0 2px 10px rgba(26,93,165,.1);
+    }
+    .site-logo {
+      height: 64px;
+      width: auto;
+      object-fit: contain;
+    }
+    .header-tagline {
+      font-size: 13px;
+      color: var(--muted);
+      text-align: right;
+      line-height: 1.4;
+    }
+    .header-tagline strong { color: var(--blue); display: block; font-size: 14px; }
+
+    /* ================================================================
+       NAVBAR
+    ================================================================ */
+    .navbar {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 60%, #2370B8 100%);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 3px 12px rgba(14,74,138,.35);
+    }
+    .nav-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: stretch;
+    }
+    .nav-link {
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      height: 52px;
+      color: rgba(255,255,255,.82);
+      text-decoration: none;
+      font-size: 13.5px;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: background .2s, color .2s;
+      position: relative;
+    }
+    .nav-link:hover {
+      background: rgba(255,255,255,.1);
+      color: #fff;
+    }
+    .nav-link.active {
+      background: rgba(255,255,255,.15);
+      color: #fff;
+      font-weight: 700;
+    }
+    .nav-link.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--celest);
+    }
+
+    /* Hamburger for mobile */
+    .nav-toggle {
+      display: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 14px 18px;
+      margin-left: auto;
+    }
+    .nav-toggle span {
+      display: block;
+      width: 22px; height: 2px;
+      background: #fff;
+      margin: 5px 0;
+      transition: .3s;
+    }
+    .nav-menu { display: flex; align-items: stretch; }
+
+    /* ================================================================
+       HERO STRIP
+    ================================================================ */
+    .hero-strip {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 50%, var(--celest) 100%);
+      padding: 36px 32px;
+      text-align: center;
+      color: #fff;
+    }
+    .hero-strip .breadcrumb {
+      font-size: 12px;
+      color: rgba(255,255,255,.65);
+      margin-bottom: 10px;
+    }
+    .hero-strip .breadcrumb a { color: rgba(255,255,255,.65); text-decoration: none; }
+    .hero-strip .breadcrumb a:hover { color: #fff; }
+    .hero-strip h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      text-shadow: 0 1px 3px rgba(0,0,0,.2);
+    }
+    .hero-strip p {
+      font-size: 15px;
+      color: rgba(255,255,255,.85);
+      max-width: 500px;
+      margin: 0 auto;
+    }
+
+    /* ================================================================
+       MAIN CONTENT
+    ================================================================ */
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 48px 20px;
+      gap: 32px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 32px rgba(26,93,165,.13);
+      width: 100%;
+      max-width: 560px;
+      overflow: hidden;
+      border: 1px solid rgba(61,170,216,.2);
+    }
+
+    .card-head {
+      background: linear-gradient(135deg, var(--blue-dark) 0%, var(--blue) 100%);
+      padding: 28px 36px;
+      text-align: center;
+      position: relative;
+    }
+    .card-head::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--celest), #9ADCEF, var(--celest));
+    }
+    .card-head h2 { color: #fff; font-size: 20px; font-weight: 700; margin-bottom: 5px; }
+    .card-head p  { color: rgba(255,255,255,.8); font-size: 13px; }
+
+    .card-body { padding: 32px 36px; }
+
+    label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--blue);
+      text-transform: uppercase;
+      letter-spacing: .7px;
+      margin-bottom: 8px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      padding: 13px 16px;
+      border: 2px solid #C8DFF0;
+      border-radius: 8px;
+      font-size: 17px;
+      letter-spacing: 1px;
+      outline: none;
+      color: var(--text);
+      background: #F7FBFF;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input[type="text"]:focus {
+      border-color: var(--celest);
+      box-shadow: 0 0 0 3px rgba(61,170,216,.15);
+      background: #fff;
+    }
+
+    .hint { font-size: 12px; color: #9ABCD0; margin-top: 6px; }
+
+    .btn-primary {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dark) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: opacity .2s, transform .1s;
+      box-shadow: 0 3px 10px rgba(26,93,165,.3);
+      letter-spacing: .3px;
+    }
+    .btn-primary:hover    { opacity: .9; }
+    .btn-primary:active   { transform: scale(.98); }
+    .btn-primary:disabled { opacity: .45; cursor: default; }
+
+    .error-box {
+      display: none;
+      background: #FFF3F3;
+      border: 1px solid #FFCDD2;
+      border-left: 4px solid #E53935;
+      color: #C62828;
+      border-radius: 8px;
+      padding: 13px 16px;
+      font-size: 14px;
+      margin-top: 18px;
+    }
+
+    .results { display: none; margin-top: 20px; }
+
+    .cert-item {
+      border: 1.5px solid var(--border);
+      border-left: 4px solid var(--celest);
+      border-radius: 10px;
+      padding: 20px;
+      background: #F4FAFF;
+      margin-bottom: 12px;
+    }
+    .cert-name    { font-size: 17px; font-weight: 700; color: var(--blue); margin-bottom: 3px; }
+    .cert-rut     { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+    .cert-course  { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+    .cert-details { font-size: 13px; color: #8AAABB; margin-bottom: 16px; }
+
+    .btn-download {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--celest), var(--celest-h));
+      color: #fff;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 600;
+      box-shadow: 0 3px 8px rgba(61,170,216,.35);
+      transition: opacity .2s, transform .1s;
+    }
+    .btn-download:hover  { opacity: .9; }
+    .btn-download:active { transform: scale(.97); }
+    .btn-download svg    { width: 16px; height: 16px; fill: currentColor; }
+
+    /* ================================================================
+       INFO BOXES
+    ================================================================ */
+    .info-row {
+      display: flex;
+      gap: 20px;
+      width: 100%;
+      max-width: 700px;
+      flex-wrap: wrap;
+    }
+    .info-box {
+      flex: 1;
+      min-width: 200px;
+      background: #fff;
+      border-radius: 12px;
+      padding: 22px 24px;
+      border: 1px solid var(--border);
+      box-shadow: 0 2px 10px rgba(26,93,165,.08);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+    .info-icon {
+      width: 40px; height: 40px;
+      background: linear-gradient(135deg, var(--celest), var(--blue));
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+      flex-shrink: 0;
+    }
+    .info-box h4 { font-size: 13px; font-weight: 700; color: var(--blue); margin-bottom: 4px; }
+    .info-box p  { font-size: 12px; color: var(--muted); line-height: 1.5; }
+
+    /* ================================================================
+       FOOTER
+    ================================================================ */
+    footer {
+      background: var(--blue-dark);
+      color: rgba(255,255,255,.7);
+      padding: 28px 32px;
+      text-align: center;
+    }
+    footer .footer-logo { height: 44px; margin-bottom: 12px; filter: brightness(0) invert(1); opacity: .85; }
+    footer p   { font-size: 13px; line-height: 1.8; }
+    footer a   { color: var(--celest); text-decoration: none; }
+    footer a:hover { text-decoration: underline; }
+    .footer-links { display: flex; justify-content: center; gap: 20px; margin-top: 12px; flex-wrap: wrap; }
+    .footer-links a { font-size: 12px; color: rgba(255,255,255,.55); }
+    .footer-links a:hover { color: #fff; }
+
+    /* ================================================================
+       RESPONSIVE
+    ================================================================ */
+    @media (max-width: 760px) {
+      .topbar            { display: none; }
+      .site-header       { padding: 12px 16px; }
+      .header-tagline    { display: none; }
+
+      .nav-toggle { display: flex; flex-direction: column; justify-content: center; }
+      .nav-menu {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        background: var(--blue-dark);
+        position: absolute;
+        top: 100%; left: 0; right: 0;
+        z-index: 200;
+        box-shadow: 0 8px 20px rgba(0,0,0,.3);
+      }
+      .nav-menu.open { display: flex; }
+      .navbar { position: relative; }
+      .nav-inner { flex-wrap: wrap; }
+      .nav-link { height: 46px; border-bottom: 1px solid rgba(255,255,255,.08); width: 100%; }
+
+      .hero-strip h1 { font-size: 22px; }
+      .card-body     { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <a href="https://secap.cl/contacto/" target="_blank">Contacto</a>
+  <span class="sep">|</span>
+  <a href="https://aulavirtual.secap.cl/login/index.php" target="_blank">Aula Virtual</a>
+  <span class="sep">|</span>
+  <a href="https://secap.cl/portal-docentes/" target="_blank">Portal Docentes</a>
+</div>
+
+<!-- HEADER -->
+<div class="site-header">
+  <a href="https://secap.cl/" target="_blank">
+    <img class="site-logo"
+      src="/uploads/logo.webp"
+      onerror="this.src='/uploads/logo.png';this.onerror=function(){this.src='https://secap.cl/wp-content/uploads/2025/10/Logo-removebg-preview-3.webp';this.onerror=null}"
+      alt="SECAP">
+  </a>
+  <div class="header-tagline">
+    <strong>SECAP · Servicio de Capacitaciones</strong>
+    Donde la excelencia en la formación se une con la experiencia
+  </div>
+</div>
+
+<!-- NAVBAR -->
+<nav class="navbar" role="navigation" aria-label="Menú principal">
+  <div class="nav-inner">
+
+    <button class="nav-toggle" id="navToggle" aria-label="Menú" onclick="toggleNav()">
+      <span></span><span></span><span></span>
+    </button>
+
+    <div class="nav-menu" id="navMenu">
+      <a href="https://secap.cl/"                                      class="nav-link" target="_blank">Inicio</a>
+      <a href="https://secap.cl/quienes-somos/"                        class="nav-link" target="_blank">Nosotros</a>
+      <a href="https://secap.cl/nuestros-cursos/"                      class="nav-link" target="_blank">Nuestros Cursos</a>
+      <a href="https://aulavirtual.secap.cl/login/index.php"           class="nav-link" target="_blank">Aula Virtual</a>
+      <a href="https://secap.cl/portal-docentes/"                      class="nav-link" target="_blank">Portal Docentes</a>
+      <a href="/"                                                       class="nav-link active" aria-current="page">Certificados</a>
+      <a href="https://secap.cl/contacto/"                             class="nav-link" target="_blank">Contacto</a>
+    </div>
+
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-strip">
+  <p class="breadcrumb">
+    <a href="https://secap.cl/" target="_blank">Inicio</a> &rsaquo; Certificados
+  </p>
+  <h1>Descarga tu Certificado</h1>
+  <p>Ingresa tu RUT para obtener tu certificado oficial de aprobación de curso</p>
+</div>
+
+<!-- CONTENT -->
+<main>
+
+  <div class="card">
+    <div class="card-head">
+      <h2>Consulta de Certificados</h2>
+      <p>Busca y descarga tu certificado ingresando tu número de RUT</p>
+    </div>
+    <div class="card-body">
+
+      <label for="rutInput">Tu RUT</label>
+      <input type="text" id="rutInput" placeholder="Ej: 12.345.678-9" maxlength="12" autocomplete="off">
+      <p class="hint">Puedes ingresar el RUT con o sin puntos y guión</p>
+
+      <button class="btn-primary" id="buscarBtn">Buscar Certificado</button>
+
+      <div class="error-box" id="errorBox"></div>
+      <div class="results"   id="results"></div>
+
+    </div>
+  </div>
+
+  <!-- Info boxes -->
+  <div class="info-row">
+    <div class="info-box">
+      <div class="info-icon">📄</div>
+      <div>
+        <h4>Certificado Oficial</h4>
+        <p>El PDF incluye código de verificación para comprobar su autenticidad ante empleadores.</p>
+      </div>
+    </div>
+    <div class="info-box">
+      <div class="info-icon">🔒</div>
+      <div>
+        <h4>Verificación en línea</h4>
+        <p>Cada certificado tiene un QR único que permite verificar su validez en cualquier momento.</p>
+      </div>
+    </div>
+    <div class="info-box">
+      <div class="info-icon">❓</div>
+      <div>
+        <h4>¿No encuentras tu certificado?</h4>
+        <p>Contáctanos a través de <a href="https://secap.cl/contacto/" target="_blank">secap.cl/contacto</a></p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer>
+  <img class="footer-logo"
+    src="/uploads/logo.webp"
+    onerror="this.src='/uploads/logo.png';this.onerror=null"
+    alt="SECAP">
+  <p>© <span id="year"></span> SECAP · Servicio de Capacitaciones · Todos los derechos reservados</p>
+  <div class="footer-links">
+    <a href="https://secap.cl/"                    target="_blank">Inicio</a>
+    <a href="https://secap.cl/quienes-somos/"      target="_blank">Nosotros</a>
+    <a href="https://secap.cl/nuestros-cursos/"    target="_blank">Nuestros Cursos</a>
+    <a href="https://secap.cl/contacto/"           target="_blank">Contacto</a>
+  </div>
+</footer>
+
+<script>
+  document.getElementById('year').textContent = new Date().getFullYear();
+
+  // Hamburger toggle
+  function toggleNav() {
+    document.getElementById('navMenu').classList.toggle('open');
+  }
+
+  // Formato automático de RUT
+  document.getElementById('rutInput').addEventListener('input', function () {
+    let raw = this.value.replace(/[^0-9kK]/g, '').toUpperCase();
+    if (raw.length > 1) {
+      const dv = raw.slice(-1);
+      let body = raw.slice(0, -1);
+      let fmt  = '';
+      while (body.length > 3) { fmt = '.' + body.slice(-3) + fmt; body = body.slice(0, -3); }
+      this.value = body + fmt + '-' + dv;
+    } else {
+      this.value = raw;
+    }
+  });
+
+  document.getElementById('rutInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') buscar();
+  });
+  document.getElementById('buscarBtn').addEventListener('click', buscar);
+
+  async function buscar() {
+    const rut     = document.getElementById('rutInput').value.trim();
+    const btn     = document.getElementById('buscarBtn');
+    const errBox  = document.getElementById('errorBox');
+    const results = document.getElementById('results');
+
+    errBox.style.display  = 'none';
+    results.style.display = 'none';
+
+    if (!rut) { showError('Por favor ingresa tu RUT'); return; }
+
+    btn.disabled    = true;
+    btn.textContent = 'Buscando…';
+
+    try {
+      const res  = await fetch('/api/buscar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rut })
+      });
+      const data = await res.json();
+
+      if (!res.ok) { showError(data.error || 'Error al buscar'); return; }
+
+      results.innerHTML = data.map(cert => `
+        <div class="cert-item">
+          <div class="cert-name">${cert.nombre}</div>
+          <div class="cert-rut">RUT: ${cert.rut}</div>
+          <div class="cert-course">${cert.curso}</div>
+          <div class="cert-details">
+            ${cert.horas ? cert.horas + ' horas &nbsp;·&nbsp; ' : ''}${cert.fecha || ''}
+          </div>
+          <a href="/certificado/${cert.codigo}" class="btn-download" download>
+            <svg viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v9.586l2.293-2.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V3a1 1 0 011-1zM3 17a1 1 0 011-1h12a1 1 0 010 2H4a1 1 0 01-1-1z"/></svg>
+            Descargar Certificado PDF
+          </a>
+        </div>
+      `).join('');
+
+      results.style.display = 'block';
+
+    } catch (e) {
+      showError('Error de conexión. Intenta nuevamente.');
+    } finally {
+      btn.disabled    = false;
+      btn.textContent = 'Buscar Certificado';
+    }
+  }
+
+  function showError(msg) {
+    const b = document.getElementById('errorBox');
+    b.textContent   = msg;
+    b.style.display = 'block';
+  }
+</script>
+</body>
+</html>
