@@ -309,13 +309,13 @@
 
   <!-- IMÁGENES -->
   <div class="tab-content" id="tab-imagenes">
-    <p class="section-title">Logo y Firma del Certificado</p>
+    <p class="section-title">Imágenes del Certificado</p>
     <p style="color:var(--muted);font-size:14px;margin-bottom:24px">
-      Sube el logo y la firma que aparecerán en los certificados PDF generados.
+      Sube el logo, firma y logos opcionales que aparecerán en los certificados PDF generados.
     </p>
     <div class="img-upload-row">
       <div class="img-box">
-        <h3>Logo de la Empresa</h3>
+        <h3>Logo SECAP (cabecera izquierda)</h3>
         <img id="previewLogo" class="img-preview"
           src="/uploads/logo.webp"
           onerror="this.src='/uploads/logo.png';this.onerror=function(){this.src='https://secap.cl/wp-content/uploads/2025/10/Logo-removebg-preview-3.webp';this.onerror=null}"
@@ -330,13 +330,37 @@
         <h3>Firma del Responsable</h3>
         <img id="previewFirma" class="img-preview"
           src="/uploads/firma.png"
-          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22120%22><rect width=%22200%22 height=%22120%22 fill=%22%23EBF5FC%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ABCD0%22 font-size=%2213%22>Sin firma</text></svg>'"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2020/svg%22 width=%22200%22 height=%22120%22><rect width=%22200%22 height=%22120%22 fill=%22%23EBF5FC%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ABCD0%22 font-size=%2213%22>Sin firma</text></svg>'"
           alt="Firma">
         <input type="file" id="fileFirmaInput" accept="image/*" style="display:none" onchange="subirImagen('firma', this)">
         <button class="btn btn-outline" style="width:100%" onclick="document.getElementById('fileFirmaInput').click()">
           Subir Firma (PNG / JPG)
         </button>
         <p style="font-size:12px;color:#9ABCD0;margin-top:8px">Recomendado: PNG con fondo blanco o transparente</p>
+      </div>
+      <div class="img-box">
+        <h3>Logo Organismo Mandante <span style="font-weight:400;color:#9ABCD0">(opcional)</span></h3>
+        <img id="previewLogo_mandante" class="img-preview"
+          src="/uploads/logo_mandante.png"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22120%22><rect width=%22200%22 height=%22120%22 fill=%22%23EBF5FC%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ABCD0%22 font-size=%2212%22>Sin logo mandante</text></svg>'"
+          alt="Logo Mandante">
+        <input type="file" id="fileLogo_mandanteInput" accept="image/*" style="display:none" onchange="subirImagen('logo_mandante', this)">
+        <button class="btn btn-outline" style="width:100%" onclick="document.getElementById('fileLogo_mandanteInput').click()">
+          Subir Logo Mandante
+        </button>
+        <p style="font-size:12px;color:#9ABCD0;margin-top:8px">Aparece en cabecera derecha del certificado. Si no se sube, no aparece.</p>
+      </div>
+      <div class="img-box">
+        <h3>Logo Secundario SECAP <span style="font-weight:400;color:#9ABCD0">(opcional)</span></h3>
+        <img id="previewLogo_secap" class="img-preview"
+          src="/uploads/logo_secap.png"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22120%22><rect width=%22200%22 height=%22120%22 fill=%22%23EBF5FC%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ABCD0%22 font-size=%2212%22>Sin logo secundario</text></svg>'"
+          alt="Logo Secundario">
+        <input type="file" id="fileLogo_secapInput" accept="image/*" style="display:none" onchange="subirImagen('logo_secap', this)">
+        <button class="btn btn-outline" style="width:100%" onclick="document.getElementById('fileLogo_secapInput').click()">
+          Subir Logo Secundario
+        </button>
+        <p style="font-size:12px;color:#9ABCD0;margin-top:8px">Aparece centrado en la parte inferior del certificado (ej: mascota SECAP).</p>
       </div>
     </div>
   </div>
@@ -612,8 +636,10 @@
       const d = await res.json();
       if (res.ok) {
         const previewId = 'preview' + tipo.charAt(0).toUpperCase() + tipo.slice(1);
-        document.getElementById(previewId).src = d.url;
-        toast(tipo === 'logo' ? 'Logo actualizado' : 'Firma actualizada');
+        const el = document.getElementById(previewId);
+        if (el) el.src = d.url;
+        const nombres = { logo: 'Logo actualizado', firma: 'Firma actualizada', logo_mandante: 'Logo mandante actualizado', logo_secap: 'Logo secundario actualizado' };
+        toast(nombres[tipo] || 'Imagen actualizada');
       } else { toast(d.error || 'Error al subir imagen', true); }
     } catch (e) { toast('Error de conexión', true); }
     input.value = '';

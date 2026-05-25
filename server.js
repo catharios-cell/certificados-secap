@@ -245,7 +245,7 @@ app.post('/admin/imagen/:tipo', (req, res) => {
     return res.status(401).json({ error: 'No autorizado' });
 
   const { tipo } = req.params;
-  if (!['logo', 'firma'].includes(tipo))
+  if (!['logo', 'firma', 'logo_mandante', 'logo_secap'].includes(tipo))
     return res.status(400).json({ error: 'Tipo inválido' });
 
   uploadImg.single('imagen')(req, res, (err) => {
@@ -324,11 +324,18 @@ async function generatePDF(estudiante, config) {
       doc.rect(12, 12, W - 24, 100).fill(BLUE);
       doc.rect(12, 80, W - 24, 32).fill('#1562B5');
 
-      // Logo (convertido a PNG si es webp)
+      // Logo SECAP (izquierda del header)
       const logoPath = findImage('logo');
       if (logoPath) {
         const logoBuf = await imageBuffer(logoPath);
         doc.image(logoBuf, 28, 16, { fit: [170, 90] });
+      }
+
+      // Logo del organismo mandante (derecha del header, opcional)
+      const logoMandantePath = findImage('logo_mandante');
+      if (logoMandantePath) {
+        const logoMandanteBuf = await imageBuffer(logoMandantePath);
+        doc.image(logoMandanteBuf, W - 168, 14, { fit: [140, 78] });
       }
 
       // Company in header
@@ -408,6 +415,14 @@ async function generatePDF(estudiante, config) {
          .text('Verifique la autenticidad', W - 146, 446, { width: 84, align: 'center' });
       doc.fillColor('#BBB').fontSize(6)
          .text(`Cód: ${estudiante.codigo}`, W - 146, 457, { width: 84, align: 'center' });
+
+      // Logo secundario SECAP (centro inferior, ej: persona abrazando mascota)
+      const logoSecapPath = findImage('logo_secap');
+      if (logoSecapPath) {
+        const logoSecapBuf = await imageBuffer(logoSecapPath);
+        const lw = 110;
+        doc.image(logoSecapBuf, (W - lw) / 2, 466, { fit: [lw, 65] });
+      }
 
       doc.end();
     } catch (err) {
