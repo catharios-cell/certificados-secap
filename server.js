@@ -29,19 +29,30 @@ if (!fs.existsSync(DATA_FILE))
 
 if (!fs.existsSync(CONFIG_FILE))
   fs.writeFileSync(CONFIG_FILE, JSON.stringify({
-    empresa: 'SECAP - Servicio de Capacitaciones',
-    sence: '',
-    certhia: '',
-    firmante: '',
-    cargo: '',
-    baseUrl: `http://localhost:${PORT}`,
-    adminPassword: 'admin123'
+    empresa: process.env.EMPRESA || 'SECAP - Servicio de Capacitaciones',
+    sence:   process.env.SENCE   || '',
+    certhia: process.env.CERTHIA || '',
+    firmante:process.env.FIRMANTE|| '',
+    cargo:   process.env.CARGO   || '',
+    baseUrl: process.env.BASE_URL || `http://localhost:${PORT}`,
+    adminPassword: process.env.ADMIN_PASSWORD || 'admin123'
   }, null, 2));
 
 // ---------- helpers ----------
 
 const loadStudents = () => JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
-const loadConfig   = () => JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
+const loadConfig   = () => {
+  const cfg = JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
+  // Las variables de entorno siempre tienen prioridad (persisten entre redeploys)
+  if (process.env.BASE_URL)       cfg.baseUrl       = process.env.BASE_URL;
+  if (process.env.ADMIN_PASSWORD) cfg.adminPassword = process.env.ADMIN_PASSWORD;
+  if (process.env.EMPRESA)        cfg.empresa       = process.env.EMPRESA;
+  if (process.env.SENCE)          cfg.sence         = process.env.SENCE;
+  if (process.env.CERTHIA)        cfg.certhia       = process.env.CERTHIA;
+  if (process.env.FIRMANTE)       cfg.firmante      = process.env.FIRMANTE;
+  if (process.env.CARGO)          cfg.cargo         = process.env.CARGO;
+  return cfg;
+};
 const saveStudents = d  => fs.writeFileSync(DATA_FILE,   JSON.stringify(d, null, 2));
 const saveConfig   = c  => fs.writeFileSync(CONFIG_FILE, JSON.stringify(c, null, 2));
 
