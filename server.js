@@ -60,6 +60,22 @@ function normalizeRut(rut) {
   return String(rut).replace(/[.\-\s]/g, '').toUpperCase().trim();
 }
 
+function formatFecha(fecha) {
+  if (!fecha) return fecha;
+  const s = String(fecha).trim();
+  // Detectar formato americano M/D/YY o M/D/YYYY
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{2,4})$/);
+  if (m) {
+    let [, p1, p2, p3] = m;
+    const year = p3.length === 2 ? '20' + p3 : p3;
+    // Si p2 > 12, es formato M/D → convertir a DD/MM/AAAA
+    if (parseInt(p2) > 12) return `${p2.padStart(2,'0')}/${p1.padStart(2,'0')}/${year}`;
+    // Si ya es DD/MM, solo corregir año
+    return `${p1.padStart(2,'0')}/${p2.padStart(2,'0')}/${year}`;
+  }
+  return s;
+}
+
 function generateCode(rut, curso) {
   return crypto.createHash('md5')
     .update(`${normalizeRut(rut)}-${curso}-${Date.now()}-${Math.random()}`)
@@ -393,7 +409,7 @@ async function generatePDF(estudiante, config) {
 
       const parts = [];
       if (estudiante.horas) parts.push(`con una duración de ${estudiante.horas} horas cronológicas`);
-      if (estudiante.fecha) parts.push(`fecha ${estudiante.fecha}`);
+      if (estudiante.fecha) parts.push(`fecha ${formatFecha(estudiante.fecha)}`);
       if (parts.length)
         doc.fillColor('#666').font('Helvetica').fontSize(11)
            .text(parts.join(' · '), 60, 328, { width: W - 120, align: 'center' });
@@ -419,9 +435,9 @@ async function generatePDF(estudiante, config) {
       const baseUrl = (config.baseUrl || `http://localhost:${PORT}`).replace(/\/$/, '');
       const verifyUrl = `${baseUrl}/verificar/${estudiante.codigo}`;
       const qrBuf = await QRCode.toBuffer(verifyUrl, {
-        width: 90, margin: 1, color: { dark: '#1A5DA5', light: '#F0F8FF' }
+        width: 200, margin: 2, color: { dark: '#000000', light: '#FFFFFF' }
       });
-      doc.image(qrBuf, W - 143, 362, { width: 78 });
+      doc.image(qrBuf, W - 148, 358, { width: 95 });
       doc.fillColor('#999').fontSize(7)
          .text('Verifique la autenticidad', W - 146, 446, { width: 84, align: 'center' });
       doc.fillColor('#BBB').fontSize(6)
