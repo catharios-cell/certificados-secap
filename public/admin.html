@@ -233,7 +233,7 @@
     <div style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap">
       <div class="upload-zone" style="flex:1;min-width:260px" onclick="document.getElementById('fileInput').click()">
         <strong>📂 Seleccionar archivo Excel o CSV</strong>
-        <p>Columnas esperadas: RUT · Nombre · Curso · Fecha · Horas</p>
+        <p>Columnas esperadas: RUT · Nombre · Curso · Fecha · Horas · Nota</p>
         <p id="selectedFileName" style="color:var(--blue);font-weight:600;margin-top:8px"></p>
       </div>
       <div style="display:flex;flex-direction:column;gap:10px;justify-content:center">
@@ -255,11 +255,11 @@
         <thead>
           <tr>
             <th>Nombre</th><th>RUT</th><th>Curso</th>
-            <th>Fecha</th><th>Horas</th><th>Código</th><th>Acciones</th>
+            <th>Fecha</th><th>Horas</th><th>Nota</th><th>Código</th><th>Acciones</th>
           </tr>
         </thead>
         <tbody id="studentsBody">
-          <tr class="empty-row"><td colspan="7">Cargando…</td></tr>
+          <tr class="empty-row"><td colspan="8">Cargando…</td></tr>
         </tbody>
       </table>
     </div>
@@ -342,7 +342,7 @@
         <h3>Logo Organismo Mandante <span style="font-weight:400;color:#9ABCD0">(opcional)</span></h3>
         <img id="previewLogo_mandante" class="img-preview"
           src="/uploads/logo_mandante.png"
-          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22120%22><rect width=%22200%22 height=%22120%22 fill=%22%23EBF5FC%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ABCD0%22 font-size=%2212%22>Sin logo mandante</text></svg>'"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2020/svg%22 width=%22200%22 height=%22120%22><rect width=%22200%22 height=%22120%22 fill=%22%23EBF5FC%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ABCD0%22 font-size=%2212%22>Sin logo mandante</text></svg>'"
           alt="Logo Mandante">
         <input type="file" id="fileLogo_mandanteInput" accept="image/*" style="display:none" onchange="subirImagen('logo_mandante', this)">
         <button class="btn btn-outline" style="width:100%" onclick="document.getElementById('fileLogo_mandanteInput').click()">
@@ -354,7 +354,7 @@
         <h3>Logo Secundario SECAP <span style="font-weight:400;color:#9ABCD0">(opcional)</span></h3>
         <img id="previewLogo_secap" class="img-preview"
           src="/uploads/logo_secap.png"
-          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22200%22 height=%22120%22><rect width=%22200%22 height=%22120%22 fill=%22%23EBF5FC%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%239ABCD0%22 font-size=%2212%22>Sin logo secundario</text></svg>'"
+          onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2020/svg%22 width=%22200%22 height=%22120%22><rect width=%22200%22 height=%22120%22 fill=%22%23EBF5FC%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 fill=%22%229ABCD0%22 font-size=%2212%22>Sin logo secundario</text></svg>'"
           alt="Logo Secundario">
         <input type="file" id="fileLogo_secapInput" accept="image/*" style="display:none" onchange="subirImagen('logo_secap', this)">
         <button class="btn btn-outline" style="width:100%" onclick="document.getElementById('fileLogo_secapInput').click()">
@@ -464,10 +464,10 @@
   }
 
   function renderTabla(list) {
-    const tbody  = document.getElementById('studentsBody');
+    const tbody   = document.getElementById('studentsBody');
     const totalEl = document.getElementById('totalCount');
     if (!list.length) {
-      tbody.innerHTML = '<tr class="empty-row"><td colspan="7">No hay estudiantes registrados aún</td></tr>';
+      tbody.innerHTML = '<tr class="empty-row"><td colspan="8">No hay estudiantes registrados aún</td></tr>';
       totalEl.textContent = '';
       return;
     }
@@ -478,6 +478,7 @@
         <td>${s.curso}</td>
         <td>${s.fecha || '—'}</td>
         <td>${s.horas || '—'}</td>
+        <td>${s.nota || '—'}</td>
         <td><span class="code-badge">${s.codigo}</span></td>
         <td style="display:flex;gap:8px;flex-wrap:wrap">
           <a href="/certificado/${s.codigo}" class="btn btn-sm btn-celest" target="_blank" download>↓ PDF</a>
